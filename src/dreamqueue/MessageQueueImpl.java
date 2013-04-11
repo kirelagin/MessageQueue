@@ -9,13 +9,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Влад
- * Date: 11.04.13
- * Time: 21:24
- * To change this template use File | Settings | File Templates.
- */
 
 @WebService
 public class MessageQueueImpl implements MessageQueue {
@@ -54,4 +47,5 @@ public class MessageQueueImpl implements MessageQueue {
     public Task get(int tag) {
         return null;
     }
+
 }

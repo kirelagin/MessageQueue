@@ -6,19 +6,9 @@ import message.Task;
 import javax.jws.WebMethod;
 import javax.jws.WebService;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Влад
- * Date: 11.04.13
- * Time: 21:18
- * To change this template use File | Settings | File Templates.
- */
 
 @WebService
 public interface MessageQueue {
-
-    @WebMethod
-    void ack(int id);
 
     @WebMethod
     void put(int tag, Message m);
@@ -28,4 +18,8 @@ public interface MessageQueue {
     
     @WebMethod
     Task get(int tag);
+
+    @WebMethod
+    void ack(int id);
+
 }
