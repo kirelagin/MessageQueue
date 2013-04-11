@@ -1,4 +1,5 @@
-package message;
+package itmo.mq;
+
 
 public class Message {
 

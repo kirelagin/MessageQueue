@@ -1,7 +1,4 @@
-package dreamqueue;
-
-import message.Message;
-import message.Task;
+package itmo.mq;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
@@ -15,7 +12,7 @@ public interface MessageQueue {
 
     @WebMethod
     Task get();
-    
+
     @WebMethod
     Task get(int tag);
 

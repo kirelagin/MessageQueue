@@ -1,7 +1,8 @@
-package dreamqueue;
+package itmo.dreamq;
 
-import message.Message;
-import message.Task;
+import itmo.mq.MessageQueue;
+import itmo.mq.Message;
+import itmo.mq.Task;
 
 import javax.jws.WebService;
 import java.util.*;
@@ -11,16 +12,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 @WebService
-public class MessageQueueImpl implements MessageQueue {
+public class DreamQueue implements MessageQueue {
 
     private final static int ARRAY_BLOCKING_QUEUE_SIZE = 10000;
 
     private Map<Integer, BlockingQueue<Message>> messageQueue = new ConcurrentHashMap<Integer, BlockingQueue<Message>>();
-    
+
     private Map<Integer, Message> messagePool = new HashMap<Integer, Message>();
     private List<Integer> sentMessages = new LinkedList<Integer>();
-    
-    
+
+
     @Override
     public void ack(int id) {
         messagePool.remove(id);

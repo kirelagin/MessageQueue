@@ -1,4 +1,4 @@
-package message;
+package itmo.mq;
 
 
 public class Task {
@@ -12,15 +12,15 @@ public class Task {
         this.tag = tag;
         this.ticket = ticket;
     }
-    
+
     public Message getMsg(){
         return msg;
     }
-    
+
     public int getTag(){
         return tag;
     }
-    
+
     public int getTicket(){
         return ticket;
     }
