@@ -2,9 +2,9 @@ package itmo.mq;
 
 public class Envelope {
 
-    private Message msg;
-    private int tag;
-    private long ticketId;
+    public Message msg;
+    public int tag;
+    public long ticketId;
 
     public Envelope(Message msg, int tag, long ticketId) {
         this.msg = msg;

@@ -2,13 +2,13 @@ package itmo.mq;
 
 public class Message {
 
-    private byte[] msg;
+    public byte[] msg;
 
     public Message(byte[] msg) {
         this.msg = msg;
     }
 
-    public Message(){
+    public Message() {
         msg = null;
     }
 

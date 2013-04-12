@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @WebService(endpointInterface = "itmo.mq.MessageQueue")
 public class DreamQueue implements MessageQueue {
@@ -18,11 +20,11 @@ public class DreamQueue implements MessageQueue {
 
     private final static long ONE_SECOND = 1000;
 
-    private static volatile long ticket = 0;
+    private static AtomicLong ticket = new AtomicLong();
 
     private static ConcurrentHashMap<Integer, Queue<Message>> messageQueue = new ConcurrentHashMap<Integer, Queue<Message>>();
 
-    private static Map<Long , Envelope> messagePool = new ConcurrentHashMap<Long, Envelope>();
+    private static Map<Long, Envelope> messagePool = new ConcurrentHashMap<Long, Envelope>();
     private static Queue<Ticket> sentMessages = new ConcurrentLinkedQueue<Ticket>();
 
     static {
@@ -32,7 +34,7 @@ public class DreamQueue implements MessageQueue {
             @Override
             public void run() {
                 System.out.println("current thread is " + Thread.currentThread().getName());
-                try{
+                try {
                     while (!Thread.currentThread().isInterrupted()) {
                         if (sentMessages.isEmpty()) {
                             Thread.sleep(ONE_SECOND);
@@ -45,16 +47,16 @@ public class DreamQueue implements MessageQueue {
                                 sentMessages.remove();
                                 Envelope tempTask = messagePool.remove(t.getTicket());
                                 if (tempTask != null) {
-                                    messageQueue.get(tempTask.getTag()).offer(tempTask.getMsg());
+                                    messageQueue.get(tempTask.getTag()).add(tempTask.getMsg());
                                 }
                             }
                         }
                     }
-                } catch (InterruptedException e){
+                } catch (InterruptedException e) {
                     System.err.println("timer thread is interrupted");
                 }
             }
-        }, 1000);
+        }, ONE_SECOND);
     }
 
     @Override
@@ -64,7 +66,8 @@ public class DreamQueue implements MessageQueue {
 
     @Override
     public void put(int tag, Message m) {
-        messageQueue.putIfAbsent(tag, new ArrayBlockingQueue<Message>(ARRAY_BLOCKING_QUEUE_SIZE));
+        if (messageQueue.get(tag) == null)
+            messageQueue.putIfAbsent(tag, new ArrayBlockingQueue<Message>(ARRAY_BLOCKING_QUEUE_SIZE));
         messageQueue.get(tag).add(m);
     }
 
@@ -72,10 +75,10 @@ public class DreamQueue implements MessageQueue {
     public Envelope getAny() {
         Message tempMessage = null;
         int tempTag = 0;
-        for (Map.Entry<Integer, Queue<Message>> entry : messageQueue.entrySet()){
+        for (Map.Entry<Integer, Queue<Message>> entry : messageQueue.entrySet()) {
             tempMessage = entry.getValue().poll();
             tempTag = entry.getKey();
-            if (tempMessage != null){
+            if (tempMessage != null) {
                 break;
             }
         }
@@ -94,14 +97,13 @@ public class DreamQueue implements MessageQueue {
     private Envelope createEnvelope(Message msg, int tag) {
         Envelope envelope;
         if (msg != null) {
-            envelope = new Envelope(msg, tag, ticket++);
+            envelope = new Envelope(msg, tag, ticket.getAndIncrement());
             Ticket t = new Ticket(envelope.getTicketId(), System.currentTimeMillis() + TIME_OUT);
             messagePool.put(envelope.getTicketId(), envelope);
             sentMessages.add(t);
         } else {
             envelope = new Envelope();
         }
-        System.out.println("Ticket " + envelope.getTicketId());
         return envelope;
     }
 
