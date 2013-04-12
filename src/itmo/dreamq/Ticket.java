@@ -3,19 +3,19 @@ package itmo.dreamq;
 public class Ticket {
 
     private long ticket;
-    private long timeOut;
+    private long expirationTime;
 
-    public Ticket(long ticket, long timeOut) {
+    public Ticket(long ticket, long expirationTime) {
         this.ticket = ticket;
-        this.timeOut = timeOut;
+        this.expirationTime = expirationTime;
     }
 
     public long getTicket() {
         return ticket;
     }
 
-    public long getTimeOut() {
-        return timeOut;
+    public long getExpirationTime() {
+        return expirationTime;
     }
 
 }

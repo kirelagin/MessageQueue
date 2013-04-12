@@ -6,7 +6,7 @@ public class DreamQueuePublisher {
 
     public static void main(String[] args) {
         System.out.println("before start");
-        Endpoint.publish("http://localhost:9999/mq", new MessageQueueImpl());
+        Endpoint.publish("http://localhost:9999/mq", new DreamQueue());
         System.out.println("server is ready");
     }
 }

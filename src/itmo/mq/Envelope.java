@@ -13,9 +13,9 @@ public class Envelope {
     }
 
     public Envelope() {
-        // FIXME: remove this constructor
         msg = null;
         ticketId = 0;
+        tag = 0;
     }
 
     public Message getMsg() {

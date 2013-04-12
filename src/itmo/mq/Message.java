@@ -8,6 +8,10 @@ public class Message {
         this.msg = msg;
     }
 
+    public Message(){
+        msg = null;
+    }
+
     public byte[] getMsg() {
         return msg;
     }
