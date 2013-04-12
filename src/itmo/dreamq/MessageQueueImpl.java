@@ -2,8 +2,7 @@ package itmo.dreamq;
 
 import itmo.mq.Message;
 import itmo.mq.MessageQueue;
-import itmo.mq.Task;
-import itmo.mq.Ticket;
+import itmo.mq.Envelope;
 
 import javax.jws.WebService;
 import java.util.*;
@@ -17,11 +16,11 @@ public class MessageQueueImpl implements MessageQueue {
     private final static int ARRAY_BLOCKING_QUEUE_SIZE = 10000;
     private final static long TIME_OUT = 3000;
 
-    private static volatile int ticket = 0;
+    private static volatile long ticket = 0;
 
     private static Map<Integer, Queue<Message>> messageQueue = new ConcurrentHashMap<Integer, Queue<Message>>();
 
-    private static Map<Integer, Task> messagePool = new ConcurrentHashMap<Integer, Task>();
+    private static Map<Long , Envelope> messagePool = new ConcurrentHashMap<Long, Envelope>();
     private static Queue<Ticket> sentMessages = new ConcurrentLinkedQueue<Ticket>();
 
     static {
@@ -48,9 +47,9 @@ public class MessageQueueImpl implements MessageQueue {
                             }
                         } else {
                             sentMessages.remove();
-                            Task tempTask = messagePool.remove(t.getTicket());
+                            Envelope tempTask = messagePool.remove(t.getTicket());
                             if (tempTask != null) {
-                                messageQueue.get(tempTask.getTag()).offer(new Message(tempTask.getMsg()));
+                                messageQueue.get(tempTask.getTag()).offer(tempTask.getMsg());
                             }
                         }
                     }
@@ -60,8 +59,8 @@ public class MessageQueueImpl implements MessageQueue {
     }
 
     @Override
-    public void ack(int id) {
-        messagePool.remove(id);
+    public void ack(long ticketId) {
+        messagePool.remove(ticketId);
     }
 
     @Override
@@ -73,7 +72,7 @@ public class MessageQueueImpl implements MessageQueue {
     }
 
     @Override
-    public Task get() {
+    public Envelope getAny() {
         Message tempMessage = null;
         int tempTag = 0;
         if (!messageQueue.isEmpty()) {
@@ -89,7 +88,7 @@ public class MessageQueueImpl implements MessageQueue {
     }
 
     @Override
-    public Task get(int tag) {
+    public Envelope get(int tag) {
         Message tempMessage = null;
         if (messageQueue.get(tag) != null) {
             tempMessage = messageQueue.get(tag).poll();
@@ -97,15 +96,15 @@ public class MessageQueueImpl implements MessageQueue {
         return createTicketAndTask(tempMessage, tag);
     }
 
-    private Task createTicketAndTask(Message msg, int tag) {
-        Task task;
+    private Envelope createTicketAndTask(Message msg, int tag) { // TODO: rename me
+        Envelope task;
         if (msg != null) {
-            task = new Task(msg.getMsg(), tag, ticket++);
-            Ticket t = new Ticket(task.getTicket(), System.currentTimeMillis() + TIME_OUT);
-            messagePool.put(task.getTicket(), task);
+            task = new Envelope(msg, tag, ticket++);
+            Ticket t = new Ticket(task.getTicketId(), System.currentTimeMillis() + TIME_OUT);
+            messagePool.put(task.getTicketId(), task);
             sentMessages.add(t);
         } else {
-            task = new Task();
+            task = new Envelope();
         }
         return task;
     }

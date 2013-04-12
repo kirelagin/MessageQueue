@@ -1,16 +1,16 @@
-package itmo.mq;
+package itmo.dreamq;
 
 public class Ticket {
 
-    private int ticket;
+    private long ticket;
     private long timeOut;
 
-    public Ticket(int ticket, long timeOut) {
+    public Ticket(long ticket, long timeOut) {
         this.ticket = ticket;
         this.timeOut = timeOut;
     }
 
-    public int getTicket() {
+    public long getTicket() {
         return ticket;
     }
 
