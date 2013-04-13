@@ -2,7 +2,7 @@ package itmo.mq;
 
 public class Message {
 
-    public byte[] msg;
+    private byte[] msg;
 
     public Message(byte[] msg) {
         this.msg = msg;
@@ -10,6 +10,10 @@ public class Message {
 
     public Message() {
         msg = null;
+    }
+
+    public void setMsg(byte[] msg){
+        this.msg = msg;
     }
 
     public byte[] getMsg() {

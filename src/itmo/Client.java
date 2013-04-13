@@ -3,10 +3,12 @@ package itmo;
 import itmo.mq.Envelope;
 import itmo.mq.Message;
 import itmo.mq.MessageQueue;
+import itmo.submiter.Pack;
+import itmo.submiter.SubInfo;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
-import java.net.MalformedURLException;
+import java.io.*;
 import java.net.URL;
 
 /**
@@ -14,7 +16,7 @@ import java.net.URL;
  */
 public class Client {
 
-    public static void main(String[] args) throws MalformedURLException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
         URL url = new URL("http://localhost:9999/mq?wsdl");
 
         //1st argument service URI, refer to wsdl document above
@@ -25,13 +27,32 @@ public class Client {
 
         MessageQueue hello = service.getPort(MessageQueue.class);
 
-        byte[] mb = new byte[3];
-        mb[0] = mb[1] = mb[2] = 1;
-        Message m = new Message(mb);
         Envelope e = hello.getAny();
-        System.out.println(e.getTag());
-        System.out.println(e.getTicketId());
-        System.out.println((e.getMsg() == null ) ? -1 : 1);
+        ByteArrayInputStream is = new ByteArrayInputStream(e.getMsg().getMsg());
+        ObjectInputStream ois = new ObjectInputStream(is);
+        Pack p = (Pack) ois.readObject();
+
+        double c = p.getA() + p.getB();
+
+        System.out.println(c);
+
+        URL url2 = new URL(p.getHost() + "?wsdl");
+        QName q = new QName("http://submiter.itmo/", "SubmiterService");
+
+        Service service1 = Service.create(url2, q);
+
+        QName qz = new QName("http://submiter.itmo/", "SubmiterPort");
+
+        SubInfo sub = service1.getPort(qz, SubInfo.class);
+
+        byte[] r;
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(os);
+        oos.writeObject(c);
+        r = os.toByteArray();
+        Message mr = new Message(r);
+        sub.put(mr);
+
     }
 
 }

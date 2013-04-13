@@ -1,33 +1,37 @@
 package itmo.dreamq;
 
+import com.sun.xml.internal.messaging.saaj.soap.SOAPIOException;
 import itmo.mq.Message;
 import itmo.mq.MessageQueue;
 import itmo.mq.Envelope;
 
+import javax.jws.HandlerChain;
 import javax.jws.WebService;
+import javax.xml.ws.soap.SOAPFaultException;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 @WebService(endpointInterface = "itmo.mq.MessageQueue")
 public class DreamQueue implements MessageQueue {
 
-    private final static int ARRAY_BLOCKING_QUEUE_SIZE = 10000;
     private final static long TIME_OUT = 3000;
+    private final static long EXPIRE_DELAY = 1000;
 
-    private final static long ONE_SECOND = 1000;
+    private AtomicLong ticket;
 
-    private static AtomicLong ticket = new AtomicLong();
+    private ConcurrentHashMap<Integer, BlockingQueue<Message>> messageQueue;
 
-    private static ConcurrentHashMap<Integer, Queue<Message>> messageQueue = new ConcurrentHashMap<Integer, Queue<Message>>();
+    private Map<Long, Envelope> messagePool;
+    private Queue<Ticket> sentMessages;
 
-    private static Map<Long, Envelope> messagePool = new ConcurrentHashMap<Long, Envelope>();
-    private static Queue<Ticket> sentMessages = new ConcurrentLinkedQueue<Ticket>();
 
-    static {
+    public DreamQueue() {
+        ticket = new AtomicLong();
+        messageQueue = new ConcurrentHashMap<Integer, BlockingQueue<Message>>();
+        messagePool = new ConcurrentHashMap<Long, Envelope>();
+        sentMessages = new ConcurrentLinkedQueue<Ticket>();
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
 
@@ -37,7 +41,7 @@ public class DreamQueue implements MessageQueue {
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
                         if (sentMessages.isEmpty()) {
-                            Thread.sleep(ONE_SECOND);
+                            Thread.sleep(EXPIRE_DELAY);
                         } else {
                             Ticket t = sentMessages.peek();
                             long difference = t.getExpirationTime() - System.currentTimeMillis();
@@ -56,7 +60,7 @@ public class DreamQueue implements MessageQueue {
                     System.err.println("timer thread is interrupted");
                 }
             }
-        }, ONE_SECOND);
+        }, EXPIRE_DELAY);
     }
 
     @Override
@@ -67,7 +71,7 @@ public class DreamQueue implements MessageQueue {
     @Override
     public void put(int tag, Message m) {
         if (messageQueue.get(tag) == null)
-            messageQueue.putIfAbsent(tag, new ArrayBlockingQueue<Message>(ARRAY_BLOCKING_QUEUE_SIZE));
+            messageQueue.putIfAbsent(tag, new LinkedBlockingQueue<Message>());
         messageQueue.get(tag).add(m);
     }
 
@@ -75,8 +79,11 @@ public class DreamQueue implements MessageQueue {
     public Envelope getAny() {
         Message tempMessage = null;
         int tempTag = 0;
-        for (Map.Entry<Integer, Queue<Message>> entry : messageQueue.entrySet()) {
-            tempMessage = entry.getValue().poll();
+        for (Map.Entry<Integer, BlockingQueue<Message>> entry : messageQueue.entrySet()) {
+            try {
+                tempMessage = entry.getValue().poll(0, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+            }
             tempTag = entry.getKey();
             if (tempMessage != null) {
                 break;
@@ -89,7 +96,10 @@ public class DreamQueue implements MessageQueue {
     public Envelope get(int tag) {
         Message tempMessage = null;
         if (messageQueue.get(tag) != null) {
-            tempMessage = messageQueue.get(tag).poll();
+            try {
+                tempMessage = messageQueue.get(tag).poll(0, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+            }
         }
         return createEnvelope(tempMessage, tag);
     }
