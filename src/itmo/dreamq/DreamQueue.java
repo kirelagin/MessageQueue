@@ -31,8 +31,8 @@ public class DreamQueue implements MessageQueue {
         messagePool = new ConcurrentHashMap<Long, Envelope>();
         sentMessages = new ConcurrentLinkedQueue<Ticket>();
         Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
 
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 try {
@@ -84,15 +84,15 @@ public class DreamQueue implements MessageQueue {
     public Envelope getAny() {
         Message tempMessage = null;
         int tempTag = 0;
-        for (Map.Entry<Integer, BlockingQueue<Message>> entry : messageQueue.entrySet()) {
-            try {
-                tempMessage = entry.getValue().poll(0, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
+        try {
+            for (Map.Entry<Integer, BlockingQueue<Message>> entry : messageQueue.entrySet()) {
+                    tempMessage = entry.getValue().poll(0, TimeUnit.SECONDS);
+                tempTag = entry.getKey();
+                if (tempMessage != null) {
+                    break;
+                }
             }
-            tempTag = entry.getKey();
-            if (tempMessage != null) {
-                break;
-            }
+        } catch (InterruptedException e) {
         }
         return createEnvelope(tempMessage, tempTag);
     }
@@ -100,9 +100,10 @@ public class DreamQueue implements MessageQueue {
     @Override
     public Envelope get(int tag) {
         Message tempMessage = null;
-        if (messageQueue.get(tag) != null) {
+        BlockingQueue<Message> q = messageQueue.get(tag);
+        if (q != null) {
             try {
-                tempMessage = messageQueue.get(tag).poll(0, TimeUnit.SECONDS);
+                tempMessage = q.poll(0, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
             }
         }
