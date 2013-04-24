@@ -1,13 +1,11 @@
 package itmo.dreamq;
 
-import com.sun.xml.internal.messaging.saaj.soap.SOAPIOException;
 import itmo.mq.Message;
 import itmo.mq.MessageQueue;
 import itmo.mq.Envelope;
 
 import javax.jws.HandlerChain;
 import javax.jws.WebService;
-import javax.xml.ws.soap.SOAPFaultException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,14 +63,11 @@ public class DreamQueue implements MessageQueue {
 
     @Override
     public boolean createQueue(int tag){
-        if (messageQueue.get(tag) != null){
+        if (messageQueue.containsKey(tag)) {
             return false;
-        }
-        BlockingQueue queue = messageQueue.putIfAbsent(tag, new LinkedBlockingQueue<Message>());
-        if (queue == null){
-            return true;
         } else {
-            return false;
+            BlockingQueue existingQueue = messageQueue.putIfAbsent(tag, new LinkedBlockingQueue<Message>());
+            return existingQueue == null;
         }
     }
 
@@ -83,8 +78,7 @@ public class DreamQueue implements MessageQueue {
 
     @Override
     public void put(int tag, Message m) {
-        if (messageQueue.get(tag) == null)
-            messageQueue.putIfAbsent(tag, new LinkedBlockingQueue<Message>());
+        createQueue(tag);
         messageQueue.get(tag).add(m);
     }
 
