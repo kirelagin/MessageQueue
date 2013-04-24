@@ -35,7 +35,6 @@ public class DreamQueue implements MessageQueue {
 
             @Override
             public void run() {
-                System.out.println("current thread is " + Thread.currentThread().getName());
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
                         if (sentMessages.isEmpty()) {
@@ -55,7 +54,6 @@ public class DreamQueue implements MessageQueue {
                         }
                     }
                 } catch (InterruptedException e) {
-                    System.err.println("timer thread is interrupted");
                 }
             }
         }, EXPIRE_DELAY);
