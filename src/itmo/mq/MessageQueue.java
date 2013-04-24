@@ -20,4 +20,7 @@ public interface MessageQueue {
     @WebMethod
     Envelope getAny();
 
+    @WebMethod
+    boolean createQueue(int tag);
+
 }

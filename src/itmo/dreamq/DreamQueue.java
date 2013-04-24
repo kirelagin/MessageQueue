@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @WebService(endpointInterface = "itmo.mq.MessageQueue")
 public class DreamQueue implements MessageQueue {
 
-    private final static long TIME_OUT = 3000;
+    private final static long TIME_OUT = 10000;
     private final static long EXPIRE_DELAY = 1000;
 
     private AtomicLong ticket;
@@ -61,6 +61,19 @@ public class DreamQueue implements MessageQueue {
                 }
             }
         }, EXPIRE_DELAY);
+    }
+
+    @Override
+    public boolean createQueue(int tag){
+        if (messageQueue.get(tag) != null){
+            return false;
+        }
+        BlockingQueue queue = messageQueue.putIfAbsent(tag, new LinkedBlockingQueue<Message>());
+        if (queue == null){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
