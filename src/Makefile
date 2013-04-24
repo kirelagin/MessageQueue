@@ -6,8 +6,9 @@ CLASSES := $(FILES:%.java=%.class)
 
 build : $(CLASSES)
 
+%.class : %.java
+	javac $?
+
+
 clean :
 	find . -name '*.class' -exec rm -rf {} \;
-
-$(CLASSES) : $(FILES)
-	javac $?
