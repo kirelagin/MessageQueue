@@ -102,22 +102,19 @@ public class DreamQueue implements MessageQueue {
 
     @Override
     public Envelope getAnyBlocking() {
-        Envelope e;
-        while (true) {
-            e = getAny();
-            if (e.getMsg() != null){
-                break;
-            }
+        Envelope e = getAny();
+        if (e.getMsg() != null) {
+            return e;
+        }
+        try {
             synchronized (messageQueue) {
                 e = getAny();
-                if (e.getMsg() != null) {
-                    break;
-                }
-                try {
+                while (e.getMsg() == null) {
                     messageQueue.wait();
-                } catch (InterruptedException e1) {
+                    e = getAny();
                 }
             }
+        } catch (InterruptedException e1) {
         }
         return e;
     }
@@ -138,9 +135,8 @@ public class DreamQueue implements MessageQueue {
     @Override
     public Envelope getBlocking(int tag) {
         Message tempMessage = null;
-        BlockingQueue<Message> q;
         createQueue(tag);
-        q = messageQueue.get(tag);
+        BlockingQueue<Message> q = messageQueue.get(tag);
         try {
             tempMessage = q.take();
         } catch (InterruptedException e) {
