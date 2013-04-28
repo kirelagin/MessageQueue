@@ -78,7 +78,7 @@ public class DreamQueue implements MessageQueue {
     public void put(int tag, Message m) {
         createQueue(tag);
         messageQueue.get(tag).add(m);
-        synchronized (messageQueue){
+        synchronized (messageQueue) {
             messageQueue.notify();
         }
     }
@@ -103,17 +103,19 @@ public class DreamQueue implements MessageQueue {
     @Override
     public Envelope getAnyBlocking() {
         Envelope e;
-        if ((e = getAny()).getMsg() == null){
-            synchronized (messageQueue){
-                while (true){
-                    try {
-                        messageQueue.wait();
-                        e = getAny();
-                        if (e.getMsg() != null){
-                            break;
-                        }
-                    } catch (InterruptedException e1) {
-                    }
+        while (true) {
+            e = getAny();
+            if (e.getMsg() != null){
+                break;
+            }
+            synchronized (messageQueue) {
+                e = getAny();
+                if (e.getMsg() != null) {
+                    break;
+                }
+                try {
+                    messageQueue.wait();
+                } catch (InterruptedException e1) {
                 }
             }
         }
