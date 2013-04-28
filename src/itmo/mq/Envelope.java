@@ -30,15 +30,15 @@ public class Envelope {
         return ticketId;
     }
 
-    public void setMsg(Message msg){
+    public void setMsg(Message msg) {
         this.msg = msg;
     }
 
-    public void setTag(int t){
+    public void setTag(int t) {
         tag = t;
     }
 
-    public void setTicketId(long t){
+    public void setTicketId(long t) {
         ticketId = t;
     }
 

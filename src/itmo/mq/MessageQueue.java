@@ -23,4 +23,10 @@ public interface MessageQueue {
     @WebMethod
     boolean createQueue(int tag);
 
+    @WebMethod
+    Envelope getBlocking(int tag);
+
+    @WebMethod
+    Envelope getAnyBlocking();
+
 }

@@ -60,7 +60,7 @@ public class DreamQueue implements MessageQueue {
     }
 
     @Override
-    public boolean createQueue(int tag){
+    public boolean createQueue(int tag) {
         if (messageQueue.containsKey(tag)) {
             return false;
         } else {
@@ -86,7 +86,7 @@ public class DreamQueue implements MessageQueue {
         int tempTag = 0;
         try {
             for (Map.Entry<Integer, BlockingQueue<Message>> entry : messageQueue.entrySet()) {
-                    tempMessage = entry.getValue().poll(0, TimeUnit.SECONDS);
+                tempMessage = entry.getValue().poll(0, TimeUnit.SECONDS);
                 tempTag = entry.getKey();
                 if (tempMessage != null) {
                     break;
@@ -98,12 +98,37 @@ public class DreamQueue implements MessageQueue {
     }
 
     @Override
+    public Envelope getAnyBlocking() {
+        Envelope e;
+        while ((e = getAny()).getMsg() == null) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e1) {
+            }
+        }
+        return e;
+    }
+
+    @Override
     public Envelope get(int tag) {
         Message tempMessage = null;
         BlockingQueue<Message> q = messageQueue.get(tag);
         if (q != null) {
             try {
                 tempMessage = q.poll(0, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+            }
+        }
+        return createEnvelope(tempMessage, tag);
+    }
+
+    @Override
+    public Envelope getBlocking(int tag) {
+        Message tempMessage = null;
+        BlockingQueue<Message> q = messageQueue.get(tag);
+        if (q != null) {
+            try {
+                tempMessage = q.take();
             } catch (InterruptedException e) {
             }
         }

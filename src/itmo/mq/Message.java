@@ -12,7 +12,7 @@ public class Message {
         msg = null;
     }
 
-    public void setMsg(byte[] msg){
+    public void setMsg(byte[] msg) {
         this.msg = msg;
     }
 
