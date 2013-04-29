@@ -63,6 +63,7 @@ public class DreamQueue implements MessageQueue {
         if (messageQueue.containsKey(tag)) {
             return false;
         } else {
+            System.err.println("Attempting to create queue #" + tag);
             BlockingQueue existingQueue = messageQueue.putIfAbsent(tag, new LinkedBlockingQueue<Message>());
             return existingQueue == null;
         }
@@ -70,12 +71,15 @@ public class DreamQueue implements MessageQueue {
 
     @Override
     public void ack(long ticketId) {
-        messagePool.remove(ticketId);
+        if (messagePool.remove(ticketId) == null) {
+            System.err.println("Too late!");
+        }
     }
 
     @Override
     public void put(int tag, Message m) {
         createQueue(tag);
+        System.err.println("Putting message to queue #" + tag);
         messageQueue.get(tag).add(m);
         synchronized (messageQueue) {
             messageQueue.notify();
@@ -84,6 +88,7 @@ public class DreamQueue implements MessageQueue {
 
     @Override
     public Envelope getAny() {
+        System.err.println("Get any");
         Message tempMessage = null;
         int tempTag = 0;
         try {
@@ -96,22 +101,30 @@ public class DreamQueue implements MessageQueue {
             }
         } catch (InterruptedException e) {
         }
+        if (tempMessage == null) {
+            System.err.println("Get any returning null");
+        } else {
+            System.err.println("Get any returning not null");
+        }
         return createEnvelope(tempMessage, tempTag);
     }
 
     @Override
     public Envelope getAnyBlocking() {
+        System.err.println("Get any blocking");
         Envelope e = getAny();
         if (e.getMsg() != null) {
             return e;
         }
         try {
             synchronized (messageQueue) {
+                System.err.println("Get any blocking entering wait loop");
                 e = getAny();
                 while (e.getMsg() == null) {
                     messageQueue.wait();
                     e = getAny();
                 }
+                System.err.println("Get any blocking returning");
             }
         } catch (InterruptedException e1) {
         }
@@ -120,6 +133,7 @@ public class DreamQueue implements MessageQueue {
 
     @Override
     public Envelope get(int tag) {
+        System.err.println("Get from queue #" + tag);
         Message tempMessage = null;
         BlockingQueue<Message> q = messageQueue.get(tag);
         if (q != null) {
@@ -128,16 +142,23 @@ public class DreamQueue implements MessageQueue {
             } catch (InterruptedException e) {
             }
         }
+        if (tempMessage == null) {
+            System.err.println("Get returning null");
+        } else {
+            System.err.println("Get returning not null");
+        }
         return createEnvelope(tempMessage, tag);
     }
 
     @Override
     public Envelope getBlocking(int tag) {
+        System.err.println("Get blocking from queue #" + tag);
         Message tempMessage = null;
         createQueue(tag);
         BlockingQueue<Message> q = messageQueue.get(tag);
         try {
             tempMessage = q.take();
+            System.err.println("Get blocking returning from queue #" + tag);
         } catch (InterruptedException e) {
         }
         return createEnvelope(tempMessage, tag);
