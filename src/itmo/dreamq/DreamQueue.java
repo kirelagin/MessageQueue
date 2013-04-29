@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicLong;
 @WebService(endpointInterface = "itmo.mq.MessageQueue")
 public class DreamQueue implements MessageQueue {
 
-    private final static long TIME_OUT = 10000;
     private final static long EXPIRE_DELAY = 1000;
 
     private AtomicLong ticket;
@@ -148,7 +147,7 @@ public class DreamQueue implements MessageQueue {
         Envelope envelope;
         if (msg != null) {
             envelope = new Envelope(msg, tag, ticket.getAndIncrement());
-            Ticket t = new Ticket(envelope.getTicketId(), System.currentTimeMillis() + TIME_OUT);
+            Ticket t = new Ticket(envelope.getTicketId(), System.currentTimeMillis() + EXPIRE_DELAY);
             messagePool.put(envelope.getTicketId(), envelope);
             sentMessages.add(t);
         } else {
