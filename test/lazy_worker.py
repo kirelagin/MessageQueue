@@ -8,11 +8,11 @@ def work(failing = False):
     client = Client(url)
     print client
     while True:
-        msg = client.service.getAnyBlocking()
-        print msg
+        envelope = client.service.getAnyBlocking()
+        print envelope
         time.sleep(2)
         if not failing:
-            client.service.put(msg.tag, msg)
+            client.service.put(envelope.tag, envelope.msg)
 
 if __name__ == "__main__":
     work()
