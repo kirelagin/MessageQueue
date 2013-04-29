@@ -3,4 +3,4 @@
 from lazy_worker import work
 
 if __name__ == "__main__":
-    work(True)
+    work(lazy = False)

@@ -3,7 +3,7 @@
 import time
 from suds.client import Client
 
-def work(failing = False):
+def work(lazy = True):
     url = "http://localhost:9999/mq/itmo.mq.MessageQueue?wsdl"
     client = Client(url)
     print client
@@ -11,8 +11,9 @@ def work(failing = False):
         envelope = client.service.getAnyBlocking()
         print envelope
         time.sleep(2)
-        if not failing:
+        if lazy:
             client.service.put(envelope.tag, envelope.msg)
+            client.service.ack(envelope.ticketId)
 
 if __name__ == "__main__":
     work()
