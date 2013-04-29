@@ -12,7 +12,7 @@ def work(failing = False):
         print msg
         time.sleep(2)
         if not failing:
-            client.service.put(msg.getTag(), msg)
+            client.service.put(msg.tag, msg)
 
 if __name__ == "__main__":
     work()
