@@ -2,7 +2,7 @@ FILES := $(shell find . -name '*.java')
 CLASSES := $(FILES:%.java=%.class)
 
 
-.PHONY : build clean
+.PHONY : build clean run
 
 build : $(CLASSES)
 
@@ -12,3 +12,6 @@ build : $(CLASSES)
 
 clean :
 	find . -name '*.class' -exec rm -rf {} \;
+
+run : build
+	java itmo.dreamq.DreamQueuePublisher
