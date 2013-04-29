@@ -47,7 +47,7 @@ public class DreamQueue implements MessageQueue {
                                 sentMessages.remove();
                                 Envelope tempTask = messagePool.remove(t.getTicket());
                                 if (tempTask != null) {
-                                    messageQueue.get(tempTask.getTag()).add(tempTask.getMsg());
+                                    messageQueue.get(tempTask.getTag()).put(tempTask.getMsg());
                                 }
                             }
                         }
@@ -80,9 +80,12 @@ public class DreamQueue implements MessageQueue {
     public void put(int tag, Message m) {
         createQueue(tag);
         System.err.println("Putting message to queue #" + tag);
-        messageQueue.get(tag).add(m);
-        synchronized (messageQueue) {
-            messageQueue.notify();
+        try {
+            messageQueue.get(tag).put(m);
+            synchronized (messageQueue) {
+                messageQueue.notify();
+            }
+        } catch (InterruptedException e) {
         }
     }
 
