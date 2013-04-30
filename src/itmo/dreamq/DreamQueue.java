@@ -47,7 +47,7 @@ public class DreamQueue implements MessageQueue {
                                 sentMessages.remove();
                                 Envelope tempTask = messagePool.remove(t.getTicket());
                                 if (tempTask != null) {
-                                    messageQueue.get(tempTask.getTag()).put(tempTask.getMsg());
+                                    put(tempTask.getTag(), tempTask.getMsg());
                                 }
                             }
                         }
